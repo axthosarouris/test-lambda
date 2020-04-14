@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: "A small description of the template"
+
+Resources:
+  LambdaApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: develop
+  MyLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build/libs/test-lambda.jar
+      Runtime: java11
+      Handler: lambda.LambdaHandler::handleRequest
+      Role: arn:aws:iam::770565769150:role/LambdaRole
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+      Events:
+          LambdaApi:
+            Type: Api
+            Properties:
+              Path: /hello
+              Method: get
+              RestApiId: !Ref LambdaApi
+
