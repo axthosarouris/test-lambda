@@ -1,5 +1,8 @@
 package lambda;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public class ResponseBody {
 
     private String answer;

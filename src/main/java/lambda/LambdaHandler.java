@@ -1,28 +1,36 @@
 package lambda;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.hanlders.ApiGatewayHandler;
-import nva.commons.hanlders.RequestInfo;
+import java.util.stream.Collectors;
+import nva.commons.handlers.ApiGatewayHandler;
+import nva.commons.handlers.RequestInfo;
 import org.apache.http.HttpStatus;
+import org.slf4j.LoggerFactory;
 
-public class LambdaHandler extends ApiGatewayHandler<RequestBody,ResponseBody> {
+public class LambdaHandler extends ApiGatewayHandler<String, String> {
 
     public LambdaHandler() {
-        super(RequestBody.class);
+        super(String.class, LoggerFactory.getLogger(LambdaHandler.class));
     }
 
     @Override
-    protected ResponseBody processInput(RequestBody input, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
-        LambdaLogger logger = context.getLogger();
-        logger.log("Hello from Logger");
-        return new ResponseBody.Builder().answer(input.getQuestion().toUpperCase()).build();
+    protected String processInput(String input, RequestInfo requestInfo, Context context)  {
+        logger.trace("This is an trace message");
+        logger.debug("This is an debug message");
+        logger.info("This is an info message");
+        logger.warn("This is an warning message");
+        logger.warn("This is an error message");
+        return parameterPathsToString(requestInfo);
+    }
+
+    private String parameterPathsToString(RequestInfo requestInfo) {
+        return requestInfo.getPathParameters().entrySet()
+            .stream().map(e->String.format("%s->%s",e.getKey(),e.getValue()))
+        .collect(Collectors.joining(","));
     }
 
     @Override
-    protected Integer getSuccessStatusCode(RequestBody input, ResponseBody output) {
+    protected Integer getSuccessStatusCode(String input, String output) {
         return HttpStatus.SC_OK;
     }
 }
