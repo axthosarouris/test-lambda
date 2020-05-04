@@ -8,13 +8,17 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: develop
+      Cors: "'*'"
+
   MyLambda:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./build/libs/test-lambda.jar
+      CodeUri: .
       Runtime: java11
       Handler: lambda.LambdaHandler::handleRequest
       Role: arn:aws:iam::770565769150:role/LambdaRole
+      MemorySize: 1400
+      Timeout: 60
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -22,7 +26,10 @@ Resources:
           LambdaApi:
             Type: Api
             Properties:
-              Path: /hello
-              Method: get
+              Path: /hello/{helloid}
+              RequestParameters:
+                - method.request.path.helloid:
+                    Required: true
+                    Caching: true
+              Method: post
               RestApiId: !Ref LambdaApi
-
