@@ -34,7 +34,7 @@ dependencies {
     implementation 'com.amazonaws:aws-java-sdk-lambda:1.11.749'
 
 
-    implementation group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: '1ae2151630'
+    implementation group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: 'v0.3.0'
     implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-parameter-names', version: jacksonVersion
@@ -47,7 +47,7 @@ dependencies {
 }
 
 jar {
-    enabled = false
+    enabled = true
 }
 
 
