@@ -17,7 +17,7 @@ Resources:
       CodeUri: .
       Runtime: java11
       Handler: lambda.LambdaHandler::handleRequest
-      Role: arn:aws:iam::770565769150:role/LambdaRole
+      Role: arn:aws:iam::564173771488:role/OrestisLambdaRole
       MemorySize: 1400
       Timeout: 60
       Environment:
