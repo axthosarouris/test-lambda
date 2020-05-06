@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
+#This is script is meant only for testing purposes. It is not a proper deployment method.
 
-##gradle clean build
-sam build -b deployment
+sam build -b .aws-sam
 
-##sam package --template-file template.yaml --s3-bucket orestis-b1 --output-template-file packaged.yaml
-
-sam deploy --template-file ./deployment/template.yaml \
---s3-bucket orestis-b1 \
+sam deploy --template-file ./.aws-sam/template.yaml \
+--s3-bucket orestis-bucket \
 --stack-name test-lambda-dev \
 --capabilities CAPABILITY_IAM \
 --region eu-west-1

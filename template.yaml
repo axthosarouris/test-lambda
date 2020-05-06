@@ -4,6 +4,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: "A small description of the template"
 
 Resources:
+
   LambdaApi:
     Type: AWS::Serverless::Api
     Properties:
