@@ -20,9 +20,8 @@ repositories {
 
 
 def jacksonVersion = "2.10.3"
-def awsSdkVersion = "1.11.739"
 def jupiterVersion = "5.6.0"
-def log4jVersion = "2.13.2"
+
 
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
@@ -34,7 +33,7 @@ dependencies {
     implementation 'com.amazonaws:aws-java-sdk-lambda:1.11.749'
 
 
-    implementation group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: 'v0.3.0'
+    implementation group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: 'c8402b33de'
     implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-parameter-names', version: jacksonVersion
@@ -50,7 +49,7 @@ jar {
     enabled = true
 }
 
-
+// shadowJar is not necessary. It only added from completeness.
 shadowJar {
     archiveBaseName = 'test-lambda-fat'
     archiveClassifier = ''
@@ -64,7 +63,7 @@ test {
     useJUnitPlatform()
     failFast = true
     testLogging {
-        displayGranularity = 0
+        displayGranularity = 1
         events "FAILED", "PASSED", "SKIPPED", "STANDARD_OUT", "STANDARD_ERROR"
         showExceptions = true
         showStackTraces = true

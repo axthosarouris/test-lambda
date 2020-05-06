@@ -4,23 +4,28 @@ import com.amazonaws.services.lambda.runtime.Context;
 import java.util.stream.Collectors;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.RequestInfo;
+import nva.commons.utils.doi.DoiConverter;
+import nva.commons.utils.doi.DoiConverterImpl;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
-public class LambdaHandler extends ApiGatewayHandler<String, String> {
+public class LambdaHandler extends ApiGatewayHandler<Void, String> {
 
+    private DoiConverter doiConverter;
     public LambdaHandler() {
-        super(String.class, LoggerFactory.getLogger(LambdaHandler.class));
+        super(Void.class, LoggerFactory.getLogger(LambdaHandler.class));
+        doiConverter = new DoiConverterImpl();
     }
 
     @Override
-    protected String processInput(String input, RequestInfo requestInfo, Context context)  {
+    protected String processInput(Void input, RequestInfo requestInfo, Context context)  {
         logger.trace("This is an trace message");
         logger.debug("This is an debug message");
         logger.info("This is an info message");
         logger.warn("This is an warning message");
         logger.warn("This is an error message");
-        return parameterPathsToString(requestInfo);
+        return "hello from lambda!!";
+
     }
 
     private String parameterPathsToString(RequestInfo requestInfo) {
@@ -30,7 +35,7 @@ public class LambdaHandler extends ApiGatewayHandler<String, String> {
     }
 
     @Override
-    protected Integer getSuccessStatusCode(String input, String output) {
+    protected Integer getSuccessStatusCode(Void input, String output) {
         return HttpStatus.SC_OK;
     }
 }

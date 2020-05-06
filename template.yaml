@@ -26,10 +26,6 @@ Resources:
           LambdaApi:
             Type: Api
             Properties:
-              Path: /hello/{helloid}
-              RequestParameters:
-                - method.request.path.helloid:
-                    Required: true
-                    Caching: true
-              Method: post
+              Path: /hello/
+              Method: get
               RestApiId: !Ref LambdaApi
