@@ -1,41 +1,50 @@
 package lambda;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import java.util.stream.Collectors;
+import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.RequestInfo;
-import nva.commons.utils.doi.DoiConverter;
-import nva.commons.utils.doi.DoiConverterImpl;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
-public class LambdaHandler extends ApiGatewayHandler<Void, String> {
+public class LambdaHandler extends ApiGatewayHandler<Void, Publication> {
 
-    private DoiConverter doiConverter;
     public LambdaHandler() {
         super(Void.class, LoggerFactory.getLogger(LambdaHandler.class));
-        doiConverter = new DoiConverterImpl();
     }
 
     @Override
-    protected String processInput(Void input, RequestInfo requestInfo, Context context)  {
+    protected Publication processInput(Void input,String apiGatewayJson, Context context) throws ApiGatewayException {
+        logger.info("ApiGatewayMessage:"+apiGatewayJson);
+        return super.processInput(input,apiGatewayJson,context);
+    }
+
+    @Override
+    protected Publication processInput(Void input, RequestInfo requestInfo, Context context)  {
         logger.trace("This is an trace message");
         logger.debug("This is an debug message");
         logger.info("This is an info message");
         logger.warn("This is an warning message");
         logger.warn("This is an error message");
-        return "hello from lambda!!";
+
+        DynamoService dynamoService = new DynamoService();
+        Publication publication = createPublication();
+       // dynamoService.insertPublication(publication);
+        Publication stored=dynamoService.getPublication(publication.getId(),publication.getOwnerId());
+
+        return stored;
 
     }
 
-    private String parameterPathsToString(RequestInfo requestInfo) {
-        return requestInfo.getPathParameters().entrySet()
-            .stream().map(e->String.format("%s->%s",e.getKey(),e.getValue()))
-        .collect(Collectors.joining(","));
+    private Publication createPublication() {
+        Publication publication = new Publication();
+        publication.setId("og@unit.no");
+        publication.setOwnerId("UNIT");
+        return publication;
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, String output) {
+    protected Integer getSuccessStatusCode(Void input, Publication output) {
         return HttpStatus.SC_OK;
     }
 }
