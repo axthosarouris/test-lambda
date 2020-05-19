@@ -14,8 +14,60 @@ Resources:
         DefaultAuthorizer: MyCognAuthorizer
         Authorizers:
           MyCognAuthorizer:
-            UserPoolArn: arn:aws:cognito-idp:eu-west-1:750639270376:userpool/eu-west-1_Fto5AuFGa
+            UserPoolArn: arn:aws:cognito-idp:eu-west-1:770565769150:userpool/eu-west-1_QzzhX0cnE
 
+  UserRole:
+    DependsOn: PublicationsTable
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+              Action:
+                - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: UserLambdaAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+        - PolicyName: UserDynamoAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:GetItem"
+                  - "dynamodb:Query"
+                Resource:  !GetAtt PublicationsTable.Arn
+                Condition:
+                  "ForAllValues:StringLike":
+                    "dynamodb:LeadingKeys": ["*${accounts.google.com:sub}*"]
+        - PolicyName: DynamoDBPutPolicy
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "dynamodb:PutItem"
+                    - "dynamodb:DescribeTable"
+                  Resource: !GetAtt PublicationsTable.Arn
+/*
+"Effect": "Allow",
+            "Action": "sts:AssumeRoleWithSAML",
+            "Principal": {"Federated": "arn:aws:iam::ACCOUNT-ID-WITHOUT-HYPHENS:saml-provider/PROVIDER-NAME"},
+            "Condition": {"StringEquals": {"SAML:aud": "https://signin.aws.amazon.com/saml"}}
+  */
   LambdaRole:
     DependsOn: PublicationsTable
     Type: AWS::IAM::Role
@@ -29,6 +81,9 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - 'sts:AssumeRole'
+          - Effect: Alllow
+            Principal:
+
       Path: /
       Policies:
         - PolicyName: LambdaAccessPolicy
@@ -41,28 +96,11 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource: "*"
-        - PolicyName: DynamoDBPolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:PutItem"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:DescribeTable"
-                Resource: !GetAtt PublicationsTable.Arn
-                Condition:
-                  "ForAllValues:StringEquals" :
-                    "dynamodb:LeadingKeys": ["og@unit.no"]
-
-
   PublicationsTable:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
         - AttributeName: id
-          AttributeType: S
-        - AttributeName: owner_id
           AttributeType: S
       TableName: Publications
       BillingMode: PROVISIONED
@@ -72,8 +110,6 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
-        - AttributeName: owner_id
-          KeyType: RANGE
 
   MyLambda:
     DependsOn: LambdaRole

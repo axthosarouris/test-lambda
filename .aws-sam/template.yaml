@@ -12,7 +12,7 @@ Resources:
         DefaultAuthorizer: MyCognAuthorizer
         Authorizers:
           MyCognAuthorizer:
-            UserPoolArn: arn:aws:cognito-idp:eu-west-1:750639270376:userpool/eu-west-1_Fto5AuFGa
+            UserPoolArn: arn:aws:cognito-idp:eu-west-1:770565769150:userpool/eu-west-1_QzzhX0cnE
   LambdaRole:
     DependsOn: PublicationsTable
     Type: AWS::IAM::Role
@@ -38,30 +38,39 @@ Resources:
             - logs:CreateLogStream
             - logs:PutLogEvents
             Resource: '*'
-      - PolicyName: DynamoDBPolicy
+      - PolicyName: DynamoDBGetPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:GetItem
+            - dynamodb:Query
+            Resource:
+              Fn::GetAtt:
+              - PublicationsTable
+              - Arn
+            Condition:
+              ForAllValues:StringLike:
+                dynamodb:LeadingKeys:
+                - '*${accounts.google.com:sub}*'
+      - PolicyName: DynamoDBPutPolicy
         PolicyDocument:
           Version: 2012-10-17
           Statement:
           - Effect: Allow
             Action:
             - dynamodb:PutItem
-            - dynamodb:GetItem
             - dynamodb:DescribeTable
             Resource:
               Fn::GetAtt:
               - PublicationsTable
               - Arn
-            Condition:
-              ForAllValues:StringEquals:
-                dynamodb:LeadingKeys:
-                - og@unit.no
   PublicationsTable:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
       - AttributeName: id
-        AttributeType: S
-      - AttributeName: owner_id
         AttributeType: S
       TableName: Publications
       BillingMode: PROVISIONED
@@ -71,8 +80,6 @@ Resources:
       KeySchema:
       - AttributeName: id
         KeyType: HASH
-      - AttributeName: owner_id
-        KeyType: RANGE
   MyLambda:
     DependsOn: LambdaRole
     Type: AWS::Serverless::Function

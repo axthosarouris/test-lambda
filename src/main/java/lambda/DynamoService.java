@@ -3,18 +3,20 @@ package lambda;
 import static java.lang.String.format;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.GetItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.KeyAttribute;
-import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 import nva.commons.utils.JsonUtils;
 import org.slf4j.Logger;
@@ -28,9 +30,10 @@ public class DynamoService {
     private  AmazonDynamoDB client;
     private  DynamoDB db;
 
-    public DynamoService() {
+    public DynamoService(BasicSessionCredentials credentials) {
         try {
-            client = AmazonDynamoDBClientBuilder.defaultClient();
+            BasicSessionCredentials basicSessionCredentials = new
+            client = new AmazonDynamoDBClientBuilder().withCredentials(credentials);
              db = new DynamoDB(client);
             table = db.getTable(DynamoTable);
         } catch (ResourceNotFoundException e) {
@@ -56,28 +59,32 @@ public class DynamoService {
         }
     }
 
-    public Publication getPublication(String id,String owner) {
-
-        String json=null;
+    public List<Publication> getPublications(String id) {
         try {
             client = AmazonDynamoDBClientBuilder.defaultClient();
             db = new DynamoDB(client);
             table = db.getTable(DynamoTable);
-            String keySchema=table.describe().getKeySchema().stream().map(KeySchemaElement::toString)
-                .collect(Collectors.joining(","));
-            logger.info("keySchema"+keySchema);
+            ItemCollection<QueryOutcome> result = table.query("id", id);
 
-            GetItemOutcome body = table.getItemOutcome("id", id,"owner_id",owner);
-            json = body.getItem().toJSON();
-            Publication publication = JsonUtils.objectMapper.readValue(json, Publication.class);
-            return publication;
+            List<String> items= new ArrayList<>();
+            for (Item item : result) {
+                items.add(item.toJSON());
+            };
+;
+
+            List<Publication> publications = items.stream().map(this::getPublication).collect(Collectors.toList());
+            return publications;
         } catch (AmazonServiceException e) {
             logger.error(e.getMessage());
-            throw new RuntimeException(e);
-        } catch (JsonProcessingException e) {
-            logger.error("Error while deserialising json string:"+json,e);
-            throw new  IllegalStateException(e);
+            return Collections.emptyList();
         }
     }
 
+    private Publication getPublication(String json)  {
+        try {
+            return JsonUtils.objectMapper.readValue(json, Publication.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
