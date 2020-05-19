@@ -5,7 +5,6 @@ import static java.lang.String.format;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
@@ -26,15 +25,14 @@ public class DynamoService {
 
     private static final String DynamoTable = "Publications";
     private static final Logger logger = LoggerFactory.getLogger(DynamoService.class);
-    private  Table table;
-    private  AmazonDynamoDB client;
-    private  DynamoDB db;
+    private Table table;
+    private AmazonDynamoDB client;
+    private DynamoDB db;
 
     public DynamoService(BasicSessionCredentials credentials) {
         try {
-            BasicSessionCredentials basicSessionCredentials = new
-            client = new AmazonDynamoDBClientBuilder().withCredentials(credentials);
-             db = new DynamoDB(client);
+            client = AmazonDynamoDBClientBuilder.standard().build();
+            db = new DynamoDB(client);
             table = db.getTable(DynamoTable);
         } catch (ResourceNotFoundException e) {
             logger.error(format("Error: The table \"%s\" can't be found.\n", DynamoTable));
@@ -47,9 +45,9 @@ public class DynamoService {
 
         try {
             String json = JsonUtils.objectMapper.writeValueAsString(publication);
-            logger.trace("Attempt to insert json:"+json);
+            logger.trace("Attempt to insert json:" + json);
             table.putItem(Item.fromJSON(json));
-            logger.trace("Inserted:"+json);
+            logger.trace("Inserted:" + json);
         } catch (AmazonServiceException e) {
             System.err.println(e.getMessage());
             throw new RuntimeException(e);
@@ -66,11 +64,12 @@ public class DynamoService {
             table = db.getTable(DynamoTable);
             ItemCollection<QueryOutcome> result = table.query("id", id);
 
-            List<String> items= new ArrayList<>();
+            List<String> items = new ArrayList<>();
             for (Item item : result) {
                 items.add(item.toJSON());
-            };
-;
+            }
+            ;
+            ;
 
             List<Publication> publications = items.stream().map(this::getPublication).collect(Collectors.toList());
             return publications;
@@ -80,7 +79,7 @@ public class DynamoService {
         }
     }
 
-    private Publication getPublication(String json)  {
+    private Publication getPublication(String json) {
         try {
             return JsonUtils.objectMapper.readValue(json, Publication.class);
         } catch (JsonProcessingException e) {
