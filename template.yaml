@@ -10,7 +10,6 @@ Resources:
       StageName: develop
       Cors: "'*'"
 
-
   LambdaRole:
     Type: AWS::IAM::Role
     Properties:
