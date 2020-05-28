@@ -13,7 +13,7 @@ Resources:
         Authorizers:
           MyCognAuthorizer:
             UserPoolArn: arn:aws:cognito-idp:eu-west-1:770565769150:userpool/eu-west-1_QzzhX0cnE
-  LambdaRole:
+  UserRole:
     DependsOn: PublicationsTable
     Type: AWS::IAM::Role
     Properties:
@@ -28,7 +28,7 @@ Resources:
           - sts:AssumeRole
       Path: /
       Policies:
-      - PolicyName: LambdaAccessPolicy
+      - PolicyName: UserLambdaAccess
         PolicyDocument:
           Version: 2012-10-17
           Statement:
@@ -38,7 +38,7 @@ Resources:
             - logs:CreateLogStream
             - logs:PutLogEvents
             Resource: '*'
-      - PolicyName: DynamoDBGetPolicy
+      - PolicyName: UserDynamoAccess
         PolicyDocument:
           Version: 2012-10-17
           Statement:
@@ -66,6 +66,31 @@ Resources:
               Fn::GetAtt:
               - PublicationsTable
               - Arn
+  LambdaRole:
+    DependsOn: PublicationsTable
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: LambdaAccessPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: '*'
   PublicationsTable:
     Type: AWS::DynamoDB::Table
     Properties:

@@ -15,7 +15,6 @@ Resources:
         Authorizers:
           MyCognAuthorizer:
             UserPoolArn: arn:aws:cognito-idp:eu-west-1:770565769150:userpool/eu-west-1_QzzhX0cnE
-
   UserRole:
     DependsOn: PublicationsTable
     Type: AWS::IAM::Role
@@ -27,8 +26,8 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
-              Action:
-                - 'sts:AssumeRole'
+            Action:
+              - 'sts:AssumeRole'
       Path: /
       Policies:
         - PolicyName: UserLambdaAccess
@@ -54,20 +53,15 @@ Resources:
                   "ForAllValues:StringLike":
                     "dynamodb:LeadingKeys": ["*${accounts.google.com:sub}*"]
         - PolicyName: DynamoDBPutPolicy
-            PolicyDocument:
-              Version: 2012-10-17
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - "dynamodb:PutItem"
-                    - "dynamodb:DescribeTable"
-                  Resource: !GetAtt PublicationsTable.Arn
-/*
-"Effect": "Allow",
-            "Action": "sts:AssumeRoleWithSAML",
-            "Principal": {"Federated": "arn:aws:iam::ACCOUNT-ID-WITHOUT-HYPHENS:saml-provider/PROVIDER-NAME"},
-            "Condition": {"StringEquals": {"SAML:aud": "https://signin.aws.amazon.com/saml"}}
-  */
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Action:
+                - "dynamodb:PutItem"
+                - "dynamodb:DescribeTable"
+              Resource: !GetAtt PublicationsTable.Arn
+
   LambdaRole:
     DependsOn: PublicationsTable
     Type: AWS::IAM::Role
@@ -81,9 +75,6 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - 'sts:AssumeRole'
-          - Effect: Alllow
-            Principal:
-
       Path: /
       Policies:
         - PolicyName: LambdaAccessPolicy
