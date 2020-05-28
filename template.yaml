@@ -9,15 +9,9 @@ Resources:
     Properties:
       StageName: develop
       Cors: "'*'"
-      Auth:
-        ApiKeyRequired: false
-        DefaultAuthorizer: MyCognAuthorizer
-        Authorizers:
-          MyCognAuthorizer:
-            UserPoolArn: arn:aws:cognito-idp:eu-west-1:750639270376:userpool/eu-west-1_Fto5AuFGa
+
 
   LambdaRole:
-    DependsOn: PublicationsTable
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -41,39 +35,6 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource: "*"
-        - PolicyName: DynamoDBPolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:PutItem"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:DescribeTable"
-                Resource: !GetAtt PublicationsTable.Arn
-                Condition:
-                  "ForAllValues:StringEquals" :
-                    "dynamodb:LeadingKeys": ["og@unit.no"]
-
-
-  PublicationsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-        - AttributeName: owner_id
-          AttributeType: S
-      TableName: Publications
-      BillingMode: PROVISIONED
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
-        - AttributeName: owner_id
-          KeyType: RANGE
 
   MyLambda:
     DependsOn: LambdaRole
@@ -82,7 +43,6 @@ Resources:
       CodeUri: .
       Runtime: java11
       Handler: lambda.LambdaHandler::handleRequest
-      #This role can be created here in the template
       Role: !GetAtt LambdaRole.Arn
       MemorySize: 1400
       Timeout: 60
