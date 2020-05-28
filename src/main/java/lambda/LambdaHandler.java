@@ -3,15 +3,11 @@ package lambda;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.ApiGatewayHandler;
@@ -20,7 +16,7 @@ import nva.commons.utils.JsonUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
-public class LambdaHandler extends ApiGatewayHandler<JsonNode,String> {
+public class LambdaHandler extends ApiGatewayHandler<JsonNode,JsonNode> {
 
 
     private final URI targetExample = URI.create("https://api.cristin.no/v2/institutions");
@@ -29,20 +25,20 @@ public class LambdaHandler extends ApiGatewayHandler<JsonNode,String> {
     }
 
     @Override
-    protected String processInput(JsonNode input, RequestInfo requestInfo, Context context)
+    protected JsonNode processInput(JsonNode input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
 
         HttpRequest request = HttpRequest.newBuilder(targetExample).GET().build();
         HttpResponse<String> response = readDataFromCristin( request);
 
-        String output = transformResponse(response);
+        JsonNode output = transformResponse(response);
 
         return output;
 
     }
 
-    private String transformResponse(HttpResponse<String> response) {
-        return response.body();
+    private JsonNode transformResponse(HttpResponse<String> response) throws CristinException {
+            return parseCristinResponse(response);
     }
 
     private JsonNode parseCristinResponse(HttpResponse<String> response) throws CristinException {
@@ -66,7 +62,7 @@ public class LambdaHandler extends ApiGatewayHandler<JsonNode,String> {
     }
 
     @Override
-    protected Integer getSuccessStatusCode(JsonNode input, String output) {
+    protected Integer getSuccessStatusCode(JsonNode input, JsonNode output) {
         return HttpStatus.SC_OK;
     }
 }

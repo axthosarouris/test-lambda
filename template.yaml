@@ -9,61 +9,9 @@ Resources:
     Properties:
       StageName: develop
       Cors: "'*'"
-      Auth:
-        ApiKeyRequired: false
-        DefaultAuthorizer: MyCognAuthorizer
-        Authorizers:
-          MyCognAuthorizer:
-            UserPoolArn: arn:aws:cognito-idp:eu-west-1:770565769150:userpool/eu-west-1_QzzhX0cnE
-  UserRole:
-    DependsOn: PublicationsTable
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Path: /
-      Policies:
-        - PolicyName: UserLambdaAccess
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "logs:CreateLogGroup"
-                  - "logs:CreateLogStream"
-                  - "logs:PutLogEvents"
-                Resource: "*"
-        - PolicyName: UserDynamoAccess
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:GetItem"
-                  - "dynamodb:Query"
-                Resource:  !GetAtt PublicationsTable.Arn
-                Condition:
-                  "ForAllValues:StringLike":
-                    "dynamodb:LeadingKeys": ["*${accounts.google.com:sub}*"]
-        - PolicyName: DynamoDBPutPolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-            - Effect: Allow
-              Action:
-                - "dynamodb:PutItem"
-                - "dynamodb:DescribeTable"
-              Resource: !GetAtt PublicationsTable.Arn
+
 
   LambdaRole:
-    DependsOn: PublicationsTable
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -87,20 +35,6 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource: "*"
-  PublicationsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-      TableName: Publications
-      BillingMode: PROVISIONED
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
 
   MyLambda:
     DependsOn: LambdaRole
@@ -109,7 +43,6 @@ Resources:
       CodeUri: .
       Runtime: java11
       Handler: lambda.LambdaHandler::handleRequest
-      #This role can be created here in the template
       Role: !GetAtt LambdaRole.Arn
       MemorySize: 1400
       Timeout: 60
